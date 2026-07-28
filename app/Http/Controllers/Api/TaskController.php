@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Task;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
@@ -25,13 +26,15 @@ class TaskController extends Controller
     public function store(Request $request, Category $category)
     {
         //
+        $next = Task::max('position') + 1;
+
         $validatedData = $request->validate([
             'title' => 'required',
-            'position' => 'required',
             'assigned_to' => 'required',
         ]);
 
         $validatedData['user_id'] = auth()->id();
+        $validatedData["position"] = $next;
 
         $task = $category->tasks()->create($validatedData);
         return response()->json([
