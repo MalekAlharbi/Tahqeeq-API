@@ -33,7 +33,8 @@ Route::middleware(['auth:sanctum'])->group(function(){
        // Add & Edit & Delete Tasks
        Route::post('/tasks/{category}',[TaskController::class,'store']);
        Route::delete('/tasks/{task}',[TaskController::class,'destroy']);
-       Route::post('/tasks/{task}',[UserController::class,'update']);
+       Route::put('/tasks/position/{task}',[TaskController::class,'updatePosition']);
+       Route::put('/tasks/title/{task}',[TaskController::class,'updateName']);
    });
 
    Route::post('/logout',[UserController::class,'logout']);

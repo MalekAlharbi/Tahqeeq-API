@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class CategoryResource extends JsonResource
+class TaskResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -15,10 +15,11 @@ class CategoryResource extends JsonResource
     public function toArray(Request $request): array
     {
         return[
-          'id' => $this->id,
-          'title' => $this->title,
-          'position' => $this->position,
-          'tasks' => TaskResource::collection($this->whenLoaded('tasks')),
+            'id' => $this->id,
+            'created_by' => $this->user,
+            'title' => $this->title,
+            'position' => $this->position,
+            'assigned_to' => $this->assignedTo,
         ];
     }
 }

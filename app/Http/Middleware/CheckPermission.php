@@ -21,6 +21,8 @@ class CheckPermission
             $project = $request->route('project');
         }elseif ($request->route('category')){
             $project = $request->route('category')->project;
+        }elseif ($request->route('task')){
+            $project = $request->route('task')->category->project;
         }
 
         $role = $project->users()->find($userId)->pivot->role;

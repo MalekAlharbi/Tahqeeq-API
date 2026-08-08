@@ -18,7 +18,11 @@ class CategoryController extends Controller
     public function index(Project $project)
     {
         //
-        $categories = $project->categories()->orderBy('position')->get();
+        $categories = $project->categories()
+            ->orderBy('position')
+            ->with(['tasks' => fn($query) => $query->orderBy('position')])
+            ->get();
+
         return response()->json([
             'categories' => CategoryResource::collection($categories),
         ]);

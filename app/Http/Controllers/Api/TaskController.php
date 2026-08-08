@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\TaskResource;
 use App\Models\Category;
 use App\Models\Task;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class TaskController extends Controller
     {
         //
         return response()->json([
-            'tasks' => $category->tasks()->orderBy('position')->get(),
+            'tasks' => TaskResource::collection($category->tasks()->orderBy('position')->get()),
         ]);
     }
 
@@ -54,16 +55,63 @@ class TaskController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function updateName(Request $request, Task $task)
     {
         //
+        $validatedData = $request->validate([
+            'title' => 'required',
+        ]);
+
+        $task->update($validatedData);
+
+        return response()->json([
+            'task' => $task,
+            'message' => 'Task updated successfully',
+        ]);
     }
 
+    public function updatePosition(Request $request, Task $task)
+    {
+        //
+        $validatedData = $request->validate([
+            'category_id' => 'required',
+            'position' => 'required',
+        ]);
+
+        $oldPosition = $task->position;
+        $newPosition = $validatedData['position'];
+
+        if ($newPosition !== null && $oldPosition !== $newPosition) {
+            if ($newPosition < $oldPosition) {
+                Task::where('position', '>=', $newPosition)
+                    ->where('position', '<', $oldPosition)
+                    ->increment('position');
+            } else {
+                Task::where('position', '>', $oldPosition)
+                    ->where('position', '<=', $newPosition)
+                    ->decrement('position');
+            }
+        }
+
+        $task->update($validatedData);
+
+        return response()->json([
+            'task' => $task,
+            'message' => 'Task updated successfully',
+        ]);
+    }
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Task $task)
     {
         //
+        $task->delete();
+
+        Category::where('position','>',$task->position)->decrement('position');
+
+        return response()->json([
+            'message' => 'Task deleted successfully',
+        ]);
     }
 }
