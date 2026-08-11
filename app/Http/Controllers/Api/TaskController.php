@@ -100,6 +100,17 @@ class TaskController extends Controller
             'message' => 'Task updated successfully',
         ]);
     }
+
+    public function updateCompleted(Task $task)
+    {
+        $task->update([
+            'is_completed' => !$task->is_completed
+        ]);
+        return response()->json([
+            'task' => $task,
+            'message' => 'Task updated successfully',
+        ]);
+    }
     /**
      * Remove the specified resource from storage.
      */

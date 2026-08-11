@@ -20,6 +20,7 @@ class TaskResource extends JsonResource
             'title' => $this->title,
             'position' => $this->position,
             'assigned_to' => $this->assignedTo,
+            'is_completed' => $this->is_completed
         ];
     }
 }

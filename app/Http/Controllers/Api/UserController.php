@@ -89,6 +89,24 @@ class UserController extends Controller
     public function update(Request $request, string $id)
     {
         //
+        if ((int)$id !== auth()->id()) {
+            return response()->json([
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
+        $validatedData = $request->validate([
+            'name' => 'required',
+            'email' => 'required|email',
+        ]);
+
+        $user = auth()->user();
+        $user->update($validatedData);
+
+        return response()->json([
+            'user' => auth()->user(),
+            'message' => 'Updated user'
+        ],200);
     }
 
     /**

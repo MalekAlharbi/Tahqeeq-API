@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->enum('priority',['low','medium','high'])->default('low');
             $table->unsignedSmallInteger('position')->default(0);
+            $table->boolean('is_completed')->default(false);
 
             $table->foreignId('assigned_to')->nullable()->constrained('users')->onDelete('cascade');
 

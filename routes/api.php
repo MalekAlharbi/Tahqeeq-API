@@ -19,6 +19,8 @@ Route::middleware(['auth:sanctum'])->group(function(){
    Route::get('/project/{project}',[CategoryController::class,'index']);
    Route::get('/category/{category}',[TaskController::class,'index']);
 
+   Route::put('/user/{id}',[UserController::class,'update']);
+
    Route::middleware([\App\Http\Middleware\CheckPermission::class])->group(function(){
 
        // Edit & Delete Project
@@ -35,6 +37,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
        Route::delete('/tasks/{task}',[TaskController::class,'destroy']);
        Route::put('/tasks/position/{task}',[TaskController::class,'updatePosition']);
        Route::put('/tasks/title/{task}',[TaskController::class,'updateName']);
+       Route::put('/tasks/completed/{task}',[TaskController::class,'updateCompleted']);
    });
 
    Route::post('/logout',[UserController::class,'logout']);

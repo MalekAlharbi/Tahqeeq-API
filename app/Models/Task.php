@@ -13,6 +13,7 @@ class Task extends Model
         'title',
         'position',
         'assigned_to',
+        'is_completed'
     ];
     public function category(){
         return $this->belongsTo(Category::class);
