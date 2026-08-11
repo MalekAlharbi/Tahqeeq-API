@@ -3,117 +3,70 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
+use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function register(Request $request)
-    {
-        //
-        $validatedData = $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users',
-            'password' => 'required',
-        ]);
+    use ApiResponseTrait;
 
+    public function register(RegisterRequest $request)
+    {
+        $validatedData = $request->validated();
         $user = User::create($validatedData);
         $token = $user->createToken('authToken')->plainTextToken;
 
-        return response()->json([
-            'user' => $user,
-        ])->withCookie(cookie('token', $token, 60 * 24));
+        return $this->successResponse(['user' => $user], 'User registered successfully', 201)
+            ->withCookie(cookie('token', $token, 60 * 24));
     }
-    public function login(Request $request)
-    {
-        //
-        $validatedData = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
 
-        if (!auth()->attempt($validatedData)) {
-            return response()->json([
-                'message' => 'Invalid Credentials'
-            ],401);
+    public function login(LoginRequest $request)
+    {
+        $credentials = $request->validated();
+
+        if (!auth()->attempt($credentials)) {
+            return $this->errorResponse('Invalid Credentials', 401);
         }
+
         $token = auth()->user()->createToken('authToken')->plainTextToken;
-        return response()->json([
-            'user' => auth()->user(),
-        ])->withCookie(cookie('token', $token, 60 * 24));
+
+        return $this->successResponse(['user' => auth()->user()], 'Logged in successfully')
+            ->withCookie(cookie('token', $token, 60 * 24));
     }
 
     public function getAuthenticatedUser()
     {
-        return response()->json(auth()->user());
+        return $this->successResponse(['user' => auth()->user()]);
     }
 
-    public function logout(Request $request){
+    public function logout(Request $request)
+    {
         if (auth()->check()) {
             auth()->user()->tokens()->delete();
         }
         $cookie = cookie()->forget('token');
-        return response()->json([
-            'message' => 'Logged out'
-        ])->withoutCookie($cookie);
+
+        return $this->successResponse(null, 'Logged out successfully')
+            ->withoutCookie($cookie);
     }
 
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
-        //
         if ((int)$id !== auth()->id()) {
-            return response()->json([
-                'message' => 'Unauthorized',
-            ], 403);
+            return $this->errorResponse('Unauthorized', 403);
         }
 
         $validatedData = $request->validate([
-            'name' => 'required',
-            'email' => 'required|email',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . auth()->id(),
         ]);
 
         $user = auth()->user();
         $user->update($validatedData);
 
-        return response()->json([
-            'user' => auth()->user(),
-            'message' => 'Updated user'
-        ],200);
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return $this->successResponse(['user' => $user->fresh()], 'User profile updated successfully');
     }
 }

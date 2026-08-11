@@ -3,40 +3,36 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Project\StoreProjectRequest;
+use App\Http\Requests\Project\UpdateProjectRequest;
 use App\Models\Project;
-use Illuminate\Http\Request;
+use App\Traits\ApiResponseTrait;
 
 class ProjectController extends Controller
 {
+    use ApiResponseTrait;
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
         $projects = auth()->user()->projects;
-        return response()->json([
-            'projects' => $projects
-        ]);
+        return $this->successResponse(['projects' => $projects]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreProjectRequest $request)
     {
         $user = auth()->user();
-
-        $validatedData = $request->validate([
-            'title' => 'required',
-            'description' => 'nullable',
-        ]);
+        $validatedData = $request->validated();
 
         $project = Project::create($validatedData);
-        $project->users()->attach($user);
+        $project->users()->attach($user->id, ['role' => 'owner']);
 
-        return response()->json([
-            'message' => 'Project created'
-        ],201);
+        return $this->successResponse(['project' => $project], 'Project created successfully', 201);
     }
 
     /**
@@ -44,42 +40,18 @@ class ProjectController extends Controller
      */
     public function show(Project $project)
     {
-        //
-        if(!$project){
-            return response()->json([
-                'message' => 'Project not found'
-            ],404);
-        };
-
-        return response()->json([
-            'project' => $project->load('categories'),
-        ]);
+        return $this->successResponse(['project' => $project->load('categories')]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-
-    // Don't Forget you need to see user's role before giving access for Update & Destroy.
-    public function update(Request $request, Project $project)
+    public function update(UpdateProjectRequest $request, Project $project)
     {
-        //
-        $validatedData = $request->validate([
-            'title' => 'required',
-            'description' => 'nullable',
-        ]);
-
-        if(!$project){
-            return response()->json([
-                'message' => 'Project not found'
-            ],404);
-        };
-
+        $validatedData = $request->validated();
         $project->update($validatedData);
 
-        return response()->json([
-            'message' => 'Project updated'
-        ]);
+        return $this->successResponse(['project' => $project->fresh()], 'Project updated successfully');
     }
 
     /**
@@ -87,17 +59,7 @@ class ProjectController extends Controller
      */
     public function destroy(Project $project)
     {
-        //
-        if(!$project){
-            return response()->json([
-                'message' => 'Project not found'
-            ],404);
-        };
-
         $project->delete();
-
-        return response()->json([
-            'message' => 'Project deleted'
-        ]);
+        return $this->successResponse(null, 'Project deleted successfully');
     }
 }
